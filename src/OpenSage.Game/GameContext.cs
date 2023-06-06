@@ -37,7 +37,7 @@ namespace OpenSage
 
         // TODO: Make this readonly.
         public GameObjectCollection GameObjects;
-        public readonly Quadtree<GameObject> Quadtree;
+        public readonly Quadtree<GameObjectCollidable> Quadtree;
 
         // TODO: This is temporary until Scene3D and GameContext are merged.
         public readonly Scene3D Scene3D;
@@ -50,7 +50,7 @@ namespace OpenSage
             Terrain.Terrain terrain,
             Navigation.Navigation navigation,
             Radar radar,
-            Quadtree<GameObject> quadtree,
+            Quadtree<GameObjectCollidable> quadtree,
             Scene3D scene)
         {
             AssetLoadContext = assetLoadContext;

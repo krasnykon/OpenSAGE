@@ -54,7 +54,7 @@ namespace OpenSage
 
         public readonly Terrain.Terrain Terrain;
 
-        public readonly Quadtree<GameObject> Quadtree;
+        public readonly Quadtree<GameObjectCollidable> Quadtree;
         public bool ShowTerrain
         {
             get => RenderScene.GetRenderBucket("Terrain").Visible;
@@ -331,7 +331,7 @@ namespace OpenSage
                 var borderWidth = mapFile.HeightMapData.BorderWidth * HeightMap.HorizontalScale;
                 var width = mapFile.HeightMapData.Width * HeightMap.HorizontalScale;
                 var height = mapFile.HeightMapData.Height * HeightMap.HorizontalScale;
-                Quadtree = new Quadtree<GameObject>(new RectangleF(-borderWidth, -borderWidth, width, height));
+                Quadtree = new Quadtree<GameObjectCollidable>(new RectangleF(-borderWidth, -borderWidth, width, height));
             }
 
             GameContext = new GameContext(

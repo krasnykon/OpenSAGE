@@ -23,7 +23,7 @@ using OpenSage.FileFormats;
 namespace OpenSage.Logic.Object
 {
     [DebuggerDisplay("[Object:{Definition.Name} ({Owner})]")]
-    public sealed class GameObject : Entity, IInspectable, ICollidable, IPersistableObject
+    public sealed class GameObject : Entity, IInspectable, IPersistableObject
     {
         internal static GameObject FromMapObject(
             MapObject mapObject,
@@ -273,6 +273,7 @@ namespace OpenSage.Logic.Object
 
         public Collider RoughCollider { get; set; }
         public List<Collider> Colliders { get; }
+        public GameObjectCollidable Collideable { get; }
 
         public float VerticalOffset;
 
@@ -471,8 +472,8 @@ namespace OpenSage.Logic.Object
             {
                 Colliders.Add(Collider.Create(geometry, _transform));
             }
-
             RoughCollider = Collider.Create(Colliders);
+            Collideable = new GameObjectCollidable(this);
 
             IsSelectable = Definition.KindOf.Get(ObjectKinds.Selectable);
             CanAttack = Definition.KindOf.Get(ObjectKinds.CanAttack);
@@ -560,7 +561,7 @@ namespace OpenSage.Logic.Object
             }
             Colliders.AddRange(newColliders);
             RoughCollider = Collider.Create(Colliders);
-            _gameContext.Quadtree.Update(this);
+            _gameContext.Quadtree.Update(Collideable);
         }
 
         public void HideCollider(string name)
@@ -582,7 +583,7 @@ namespace OpenSage.Logic.Object
                 }
             }
             RoughCollider = Collider.Create(Colliders);
-            _gameContext.Quadtree.Update(this);
+            _gameContext.Quadtree.Update(Collideable);
 
             if (AffectsAreaPassability)
             {
@@ -597,7 +598,7 @@ namespace OpenSage.Logic.Object
             {
                 collider.Update(_transform);
             }
-            _gameContext.Quadtree.Update(this);
+            _gameContext.Quadtree.Update(Collideable);
         }
 
         internal void LogicTick(in TimeInterval time)
@@ -1436,6 +1437,25 @@ namespace OpenSage.Logic.Object
             reader.SkipUnknownBytes(1);
 
             reader.PersistBoolean(ref IsInside);
+        }
+    }
+
+    public class GameObjectCollidable : ICollidable
+    {
+        public Collider RoughCollider { get => GameObject.RoughCollider; }
+        public List<Collider> Colliders { get => GameObject.Colliders; }
+        public Vector3 Translation { get => GameObject.Translation; }
+
+        public GameObject GameObject { get; }
+
+        public GameObjectCollidable(GameObject gameObject)
+        {
+            GameObject = gameObject;
+        }
+
+        public bool CollidesWith(ICollidable other, bool twoDimensional)
+        {
+            return GameObject.CollidesWith(other, twoDimensional);
         }
     }
 }

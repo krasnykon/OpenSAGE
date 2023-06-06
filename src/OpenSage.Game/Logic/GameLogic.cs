@@ -75,7 +75,7 @@ namespace OpenSage.Logic
                 }
             }
 
-            _game.Scene3D.Quadtree?.Insert(gameObject);
+            _game.Scene3D.Quadtree?.Insert(gameObject.Collideable);
             _game.Scene3D.Radar?.AddGameObject(gameObject);
             _game.PartitionCellManager.OnObjectAdded(gameObject);
 
@@ -138,7 +138,7 @@ namespace OpenSage.Logic
         {
             foreach (var gameObject in _destroyList)
             {
-                _game.Scene3D.Quadtree.Remove(gameObject);
+                _game.Scene3D.Quadtree.Remove(gameObject.Collideable);
                 _game.Scene3D.Radar.RemoveGameObject(gameObject);
                 gameObject.PartitionObject.Remove();
 

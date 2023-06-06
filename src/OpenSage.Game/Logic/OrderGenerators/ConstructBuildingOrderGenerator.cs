@@ -121,9 +121,9 @@ namespace OpenSage.Logic.OrderGenerators
                 new PartitionQueries.CollidesWithObjectQuery(_previewObject));
 
             // as long as the items in our way are not structures and not owned by our enemy, we can build here
-            return !_scene.Quadtree.FindIntersecting(_previewObject).Any(u =>
-                u.Definition.KindOf.Get(ObjectKinds.Structure) ||
-                _scene.LocalPlayer.Enemies.Contains(u.Owner));
+            return !_scene.Quadtree.FindIntersecting(_previewObject.Collideable).Any(u =>
+                u.GameObject.Definition.KindOf.Get(ObjectKinds.Structure) ||
+                _scene.LocalPlayer.Enemies.Contains(u.GameObject.Owner));
         }
 
         public void UpdatePosition(Vector2 mousePosition, Vector3 worldPosition)
@@ -166,7 +166,7 @@ namespace OpenSage.Logic.OrderGenerators
 
         public void Dispose()
         {
-            _scene.Quadtree.Remove(_previewObject);
+            _scene.Quadtree.Remove(_previewObject.Collideable);
             _previewObject.Dispose();
             _scene.BuildPreviewObject = null;
         }

@@ -238,7 +238,7 @@ namespace OpenSage.Logic.Object
 
             if (GameObject.ModelConditionFlags.Get(ModelConditionFlag.Moving))
             {
-                context.GameContext.Quadtree.Update(GameObject);
+                context.GameContext.Quadtree.Update(GameObject.Collideable);
             }
 
             if (CurrentLocomotor == null)
