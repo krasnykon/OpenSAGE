@@ -13,6 +13,8 @@ namespace OpenSage.Gui.Wnd.Controls
         public ControlCallback TooltipCallback { get; set; }
         public ControlDrawCallback DrawCallback { get; set; }
 
+        public bool DebugDrawEnable { get; set; }
+
         public Control Parent
         {
             get => ParentInternal;
@@ -339,6 +341,17 @@ namespace OpenSage.Gui.Wnd.Controls
             DrawOverlay(drawingContext);
 
             drawingContext.PopOpacity();
+        }
+
+        public void DebugDraw(DrawingContext2D drawingContext)
+        {
+            if (DebugDrawEnable)
+            {
+                drawingContext.DrawRectangle(
+                ClientRectangle.ToRectangleF(),
+                new ColorRgbaF(1f, 0.41f, 0.71f, 1),
+                4);
+            }
         }
 
         protected virtual void DrawOverride(DrawingContext2D drawingContext) { }

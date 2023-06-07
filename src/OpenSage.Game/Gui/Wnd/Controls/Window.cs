@@ -97,6 +97,7 @@ namespace OpenSage.Gui.Wnd.Controls
                 drawingContext.PushTransform(Matrix3x2.CreateTranslation(control.Bounds.X, control.Bounds.Y));
 
                 control.DrawCallback(control, drawingContext);
+                control.DebugDraw(drawingContext);
 
                 // Draw child controls.
                 foreach (var child in control.Controls.AsList())

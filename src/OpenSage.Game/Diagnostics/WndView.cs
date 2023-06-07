@@ -9,8 +9,6 @@ namespace OpenSage.Diagnostics
     internal sealed class WndView : DiagnosticView
     {
         private Control _selectedControl;
-        private ColorRgbaF _originalBorderColor;
-        private int _originalBorderWidth;
 
         public override string DisplayName { get; } = "WND Windows";
 
@@ -67,18 +65,12 @@ namespace OpenSage.Diagnostics
         {
             if (_selectedControl != null)
             {
-                _selectedControl.BorderColor = _originalBorderColor;
-                _selectedControl.BorderWidth = _originalBorderWidth;
+                _selectedControl.DebugDrawEnable = false;
                 _selectedControl = null;
             }
 
             _selectedControl = control;
-
-            _originalBorderColor = _selectedControl.BorderColor;
-            _originalBorderWidth = _selectedControl.BorderWidth;
-
-            _selectedControl.BorderColor = new ColorRgbaF(1f, 0.41f, 0.71f, 1);
-            _selectedControl.BorderWidth = 4;
+            _selectedControl.DebugDrawEnable = true;
         }
     }
 }
