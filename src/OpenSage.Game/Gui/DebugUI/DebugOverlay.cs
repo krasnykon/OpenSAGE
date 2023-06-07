@@ -119,14 +119,13 @@ namespace OpenSage.Gui.DebugUI
                 foreach (var gameObject in _scene3D.GameObjects.Items)
                 {
                     // TODO: Reuse frustum culling results.
-                    if (gameObject.RoughCollider != null && gameObject.RoughCollider.Intersects(camera.BoundingFrustum))
+                    foreach (var collideable in gameObject.Collideables)
                     {
-                        //if (gameObject.Colliders.Count > 1)
-                        //{
-                        //    gameObject.RoughCollider.DebugDraw(context, camera);
-                        //}
-
-                        gameObject.Geometry.DebugDraw(context, camera, gameObject);
+                        if (collideable.Collider.Intersects(camera.BoundingFrustum))
+                        {
+                            gameObject.Geometry.DebugDraw(context, camera, gameObject);
+                            break;
+                        }
                     }
 
                     var targetPoints = gameObject.AIUpdate?.TargetPoints;

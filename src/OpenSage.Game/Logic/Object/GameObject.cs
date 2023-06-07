@@ -272,8 +272,7 @@ namespace OpenSage.Logic.Object
         }
 
         public Collider RoughCollider { get; set; }
-        public List<Collider> Colliders { get; }
-        public GameObjectCollidable Collideable { get; }
+        public List<GameObjectCollidable> Collideables { get; }
 
         public float VerticalOffset;
 
@@ -466,14 +465,12 @@ namespace OpenSage.Logic.Object
             }
 
             Geometry = Definition.Geometry.Clone();
-
-            Colliders = new List<Collider>();
+            Collideables = new List<GameObjectCollidable>();
             foreach (var geometry in Geometry.Shapes)
             {
-                Colliders.Add(Collider.Create(geometry, _transform));
+                Collider collider = Collider.Create(geometry, _transform);
+                Collideables.Add(new GameObjectCollidable(this, collider));
             }
-            RoughCollider = Collider.Create(Colliders);
-            Collideable = new GameObjectCollidable(this);
 
             IsSelectable = Definition.KindOf.Get(ObjectKinds.Selectable);
             CanAttack = Definition.KindOf.Get(ObjectKinds.CanAttack);
@@ -538,67 +535,55 @@ namespace OpenSage.Logic.Object
 
         public void ShowCollider(string name)
         {
-            if (Colliders.Any(x => x.Name.Equals(name)))
+            if (Collideables.Any(x => x.Collider.Name.Equals(name)))
             {
                 return;
             }
-
-            var newColliders = new List<Collider>();
             foreach (var geometry in Definition.Geometry.Shapes)
             {
                 if (geometry.Name.Equals(name))
                 {
-                    newColliders.Add(Collider.Create(geometry, Transform));
+                    Collider collider = Collider.Create(geometry, Transform);
+                    var collideable = new GameObjectCollidable(this, collider);
+                    Collideables.Add(collideable);
+                    if (AffectsAreaPassability)
+                    {
+                        _gameContext.Navigation.UpdateAreaPassability(collider, false);
+                    }
+                    _gameContext.Quadtree.Update(collideable);
                 }
             }
-
-            if (AffectsAreaPassability)
-            {
-                foreach (var collider in newColliders)
-                {
-                    _gameContext.Navigation.UpdateAreaPassability(collider, false);
-                }
-            }
-            Colliders.AddRange(newColliders);
-            RoughCollider = Collider.Create(Colliders);
-            _gameContext.Quadtree.Update(Collideable);
         }
 
         public void HideCollider(string name)
         {
-            if (!Colliders.Any(x => x.Name.Equals(name)))
+            if (!Collideables.Any(x => x.Collider.Name.Equals(name)))
             {
                 return;
             }
-
-            for (var i = Colliders.Count - 1; i >= 0; i--)
+            for (var i = Collideables.Count - 1; i >= 0; i--)
             {
-                if (Colliders[i].Name.Equals(name))
+                Collider collider = Collideables[i].Collider;
+                if (collider.Name.Equals(name))
                 {
                     if (AffectsAreaPassability)
                     {
-                        _gameContext.Navigation.UpdateAreaPassability(Colliders[i], true);
+                        _gameContext.Navigation.UpdateAreaPassability(collider, true);
                     }
-                    Colliders.RemoveAt(i);
+                    _gameContext.Quadtree.Update(Collideables[i]);
+                    Collideables.RemoveAt(i);
                 }
-            }
-            RoughCollider = Collider.Create(Colliders);
-            _gameContext.Quadtree.Update(Collideable);
-
-            if (AffectsAreaPassability)
-            {
-                _gameContext.Navigation.UpdateAreaPassability(this, false);
             }
         }
 
         public void UpdateColliders()
         {
-            RoughCollider.Update(_transform);
-            foreach (var collider in Colliders)
+            foreach (var collideable in Collideables)
             {
-                collider.Update(_transform);
+                collideable.Collider.Update(_transform);
+                _gameContext.Quadtree.Update(collideable);
             }
-            _gameContext.Quadtree.Update(Collideable);
+            
         }
 
         internal void LogicTick(in TimeInterval time)
@@ -611,7 +596,12 @@ namespace OpenSage.Logic.Object
 
                 if (AffectsAreaPassability)
                 {
-                    _gameContext.Navigation.UpdateAreaPassability(this, false);
+                    foreach (var collideable in Collideables)
+                    {
+                        Collider collider = collideable.Collider;
+                        _gameContext.Navigation.UpdateAreaPassability(collider, false);
+                    }
+                    
                 }
 
                 _objectMoved = false;
@@ -671,7 +661,7 @@ namespace OpenSage.Logic.Object
             return ProductionUpdate?.CanProduceObject(definition) ?? true;
         }
 
-        public bool CollidesWith(ICollidable other, bool twoDimensional = false)
+        /*public bool CollidesWith(ICollidable other, bool twoDimensional = false)
         {
             if (RoughCollider == null || other.RoughCollider == null)
             {
@@ -694,7 +684,7 @@ namespace OpenSage.Logic.Object
                 }
             }
             return false;
-        }
+        }*/
 
         internal void OnCollide(GameObject collidingObject)
         {
@@ -1442,20 +1432,20 @@ namespace OpenSage.Logic.Object
 
     public class GameObjectCollidable : ICollidable
     {
-        public Collider RoughCollider { get => GameObject.RoughCollider; }
-        public List<Collider> Colliders { get => GameObject.Colliders; }
+        public Collider Collider { get; }
         public Vector3 Translation { get => GameObject.Translation; }
 
         public GameObject GameObject { get; }
 
-        public GameObjectCollidable(GameObject gameObject)
+        public GameObjectCollidable(GameObject gameObject, Collider collider)
         {
             GameObject = gameObject;
+            Collider = collider;
         }
 
-        public bool CollidesWith(ICollidable other, bool twoDimensional)
+        public bool CollidesWith(ICollidable other, bool twoDimensional = false)
         {
-            return GameObject.CollidesWith(other, twoDimensional);
+            return Collider.Intersects(other.Collider, twoDimensional);
         }
     }
 }

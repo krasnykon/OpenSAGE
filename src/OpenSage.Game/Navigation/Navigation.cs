@@ -114,15 +114,7 @@ namespace OpenSage.Navigation
             }
             return result;
         }
-
-        public void UpdateAreaPassability(GameObject gameObject, bool passable)
-        {
-            foreach (var collider in gameObject.Colliders)
-            {
-                UpdateAreaPassability(collider, passable);
-            }
-        }
-
+        
         public void UpdateAreaPassability(Collider collider, bool passable)
         {
             var axisAlignedBoundingArea = collider.AxisAlignedBoundingArea;

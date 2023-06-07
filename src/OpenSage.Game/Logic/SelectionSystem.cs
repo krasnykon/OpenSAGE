@@ -7,6 +7,7 @@ using OpenSage.Logic.Object;
 using OpenSage.Logic.Orders;
 using OpenSage.Mathematics;
 using OpenSage.Logic.OrderGenerators;
+using OpenSage.DataStructures;
 
 namespace OpenSage.Logic
 {
@@ -194,15 +195,14 @@ namespace OpenSage.Logic
 
             foreach (var gameObject in Game.Scene3D.GameObjects.Items)
             {
-                if (!gameObject.IsSelectable ||
-                    gameObject.RoughCollider == null ||
-                    !gameObject.RoughCollider.Intersects(ray, out _))
+                if (!gameObject.IsSelectable)
                 {
                     continue;
                 }
 
-                foreach (var collider in gameObject.Colliders)
+                foreach (var collideable in gameObject.Collideables)
                 {
+                    Collider collider = collideable.Collider;
                     if (!collider.Intersects(ray, out var depth))
                     {
                         continue;
@@ -242,7 +242,7 @@ namespace OpenSage.Logic
             // TODO: Optimize with quadtree
             foreach (var gameObject in Game.Scene3D.GameObjects.Items)
             {
-                if (!gameObject.IsSelectable || gameObject.RoughCollider == null)
+                if (!gameObject.IsSelectable)
                 {
                     continue;
                 }
@@ -253,15 +253,20 @@ namespace OpenSage.Logic
                     continue;
                 }
 
-                if (gameObject.RoughCollider.Intersects(boxFrustum))
+                foreach (var collideable in gameObject.Collideables)
                 {
-                    if (gameObject.Definition.KindOf.Get(ObjectKinds.Structure) == false)
+                    Collider collider = collideable.Collider;
+                    if (collider.Intersects(boxFrustum))
                     {
-                        selectedObjects.Add(gameObject.ID);
-                    }
-                    else if (gameObject.Definition.KindOf.Get(ObjectKinds.Structure) == true)
-                    {
-                        structure ??= gameObject.ID;
+                        if (gameObject.Definition.KindOf.Get(ObjectKinds.Structure) == false)
+                        {
+                            selectedObjects.Add(gameObject.ID);
+                        }
+                        else if (gameObject.Definition.KindOf.Get(ObjectKinds.Structure) == true)
+                        {
+                            structure ??= gameObject.ID;
+                        }
+                        break;
                     }
                 }
             }

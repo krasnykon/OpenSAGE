@@ -238,7 +238,10 @@ namespace OpenSage.Logic.Object
 
             if (GameObject.ModelConditionFlags.Get(ModelConditionFlag.Moving))
             {
-                context.GameContext.Quadtree.Update(GameObject.Collideable);
+                foreach (var collideable in GameObject.Collideables)
+                {
+                    context.GameContext.Quadtree.Update(collideable);
+                }
             }
 
             if (CurrentLocomotor == null)

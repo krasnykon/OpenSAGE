@@ -427,11 +427,15 @@ namespace OpenSage
             {
                 foreach (var gameObject in GameObjects.Items)
                 {
-                    if (!FrustumCulling
-                        || gameObject.Definition.KindOf.Get(ObjectKinds.NoCollide)
-                        || gameObject.RoughCollider.Intersects(Camera.BoundingFrustum))
+                    foreach (var collideable in gameObject.Collideables)
                     {
-                        gameObject.BuildRenderList(renderList, camera, gameTime);
+                        if (!FrustumCulling
+                        || gameObject.Definition.KindOf.Get(ObjectKinds.NoCollide)
+                        || collideable.Collider.Intersects(Camera.BoundingFrustum))
+                        {
+                            gameObject.BuildRenderList(renderList, camera, gameTime);
+                                break;
+                        }
                     }
                 }
             }
@@ -562,9 +566,12 @@ namespace OpenSage
                 var startingBuilding = GameObjects.Add(player.Template.StartingBuilding.Value, player);
                 var rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, MathUtility.ToRadians(startingBuilding.Definition.PlacementViewAngle));
                 startingBuilding.UpdateTransform(playerStartPosition, rotation);
-
-                Navigation.UpdateAreaPassability(startingBuilding, false);
-
+                
+                foreach (var collideable in startingBuilding.Collideables)
+                {
+                    Navigation.UpdateAreaPassability(collideable.Collider, false);
+                }
+                
                 var startingUnit0 = GameObjects.Add(player.Template.StartingUnits[0].Unit.Value, player);
                 var startingUnit0Position = playerStartPosition;
                 startingUnit0Position += Vector3.Transform(Vector3.UnitX, startingBuilding.Rotation) * startingBuilding.Definition.Geometry.Shapes[0].MajorRadius;

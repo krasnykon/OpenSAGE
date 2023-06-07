@@ -68,18 +68,7 @@ namespace OpenSage.DataStructures
 
         public IEnumerable<T> FindIntersecting(T searcher)
         {
-            var result = FindIntersectingInternal(searcher.RoughCollider, searcher);
-            if (searcher.Colliders.Count == 1)
-            {
-                return result;
-            }
-
-            for (var i = 1; i < searcher.Colliders.Count; i++)
-            {
-                var intersections = FindIntersectingInternal(searcher.Colliders[i], searcher);
-                foreach (var intersection in intersections) result.Append(intersection);
-            }
-            return result;
+            return FindIntersectingInternal(searcher.Collider, searcher);
         }
 
         public IEnumerable<T> FindIntersecting(in Collider collider, T searcher = null)
@@ -172,7 +161,7 @@ namespace OpenSage.DataStructures
             // 2. Check if the item fully fits into any of the children.
             foreach (var subTree in _children)
             {
-                var containment = subTree.Bounds.Intersect(item.RoughCollider.AxisAlignedBoundingArea);
+                var containment = subTree.Bounds.Intersect(item.Collider.AxisAlignedBoundingArea);
 
                 switch (containment)
                 {
@@ -257,8 +246,7 @@ namespace OpenSage.DataStructures
 
     public interface ICollidable
     {
-        Collider RoughCollider { get; }
-        List<Collider> Colliders { get; }
+        Collider Collider { get; }
         Vector3 Translation { get; }
 
         bool CollidesWith(ICollidable other, bool twoDimensional);
