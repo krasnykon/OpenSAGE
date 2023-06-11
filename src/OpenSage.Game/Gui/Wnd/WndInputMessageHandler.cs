@@ -13,6 +13,50 @@ namespace OpenSage.Gui.Wnd
 
         private readonly List<Control> _lastMouseOverControls = new List<Control>();
 
+        private bool GetControlAtPoint(
+            in Point2D mousePosition,
+            out Control control,
+            out Point2D controlRelativePosition)
+        {
+            control = _windowManager.GetControlAtPoint(mousePosition);
+
+            if (control != null)
+            {
+                controlRelativePosition = control.PointToClient(mousePosition);
+                return true;
+            }
+
+            controlRelativePosition = Point2D.Zero;;
+            return false;
+        }
+
+        private static void InvokeCallback(
+            Control control,
+            ControlCallbackContext context,
+            WndWindowMessage message)
+        {
+            control.InputCallback.Invoke(control, message, context);
+        }
+
+        private static void InvokeCallback(
+            Control control,
+            ControlCallbackContext context,
+            WndWindowMessageType messageType)
+        {
+            var message = new WndWindowMessage(messageType, control);
+            control.InputCallback.Invoke(control, message, context);
+        }
+
+        private static void InvokeCallback(
+            Control control,
+            ControlCallbackContext context,
+            WndWindowMessageType messageType,
+            Point2D mousePosition)
+        {
+            var message = new WndWindowMessage(messageType, control, mousePosition);
+            control.InputCallback.Invoke(control, message, context);
+        }
+
         public override HandlingPriority Priority => HandlingPriority.UIPriority;
 
         public WndInputMessageHandler(WndWindowManager windowManager, Game game)
@@ -20,22 +64,8 @@ namespace OpenSage.Gui.Wnd
             _windowManager = windowManager;
             _game = game;
         }
-
         public override InputMessageResult HandleMessage(InputMessage message)
         {
-            bool GetControlAtPoint(in Point2D mousePosition, out Control control, out Point2D controlRelativePosition)
-            {
-                control = _windowManager.GetControlAtPoint(mousePosition);
-
-                if (control != null)
-                {
-                    controlRelativePosition = control.PointToClient(mousePosition);
-                    return true;
-                }
-
-                controlRelativePosition = Point2D.Zero;;
-                return false;
-            }
 
             var context = new ControlCallbackContext(_windowManager, _game);
 
@@ -48,20 +78,14 @@ namespace OpenSage.Gui.Wnd
                         {
                             if (!mouseOverControls.Contains(control))
                             {
-                                control.InputCallback.Invoke(
-                                    control,
-                                    new WndWindowMessage(WndWindowMessageType.MouseExit, control),
-                                    context);
+                                InvokeCallback(control, context, WndWindowMessageType.MouseExit);
                             }
                         }
                         foreach (var control in mouseOverControls)
                         {
                             if (!_lastMouseOverControls.Contains(control))
                             {
-                                control.InputCallback.Invoke(
-                                    control,
-                                    new WndWindowMessage(WndWindowMessageType.MouseEnter, control),
-                                    context);
+                                InvokeCallback(control, context, WndWindowMessageType.MouseEnter);
                             }
                         }
 
@@ -71,10 +95,7 @@ namespace OpenSage.Gui.Wnd
                         foreach (var control in mouseOverControls)
                         {
                             var mousePosition = control.PointToClient(message.Value.MousePosition);
-                            control.InputCallback.Invoke(
-                                control,
-                                new WndWindowMessage(WndWindowMessageType.MouseMove, control, mousePosition),
-                                context);
+                            InvokeCallback(control, context, WndWindowMessageType.MouseMove, mousePosition);
                         }
                         return mouseOverControls.Count > 0
                             ? InputMessageResult.Handled
@@ -85,10 +106,7 @@ namespace OpenSage.Gui.Wnd
                     {
                         if (GetControlAtPoint(message.Value.MousePosition, out var element, out var mousePosition))
                         {
-                            element.InputCallback.Invoke(
-                                element,
-                                new WndWindowMessage(WndWindowMessageType.MouseDown, element, mousePosition),
-                                context);
+                            InvokeCallback(element, context, WndWindowMessageType.MouseDown, mousePosition);
                             return InputMessageResult.Handled;
                         }
                         break;
@@ -98,10 +116,7 @@ namespace OpenSage.Gui.Wnd
                     {
                         if (GetControlAtPoint(message.Value.MousePosition, out var element, out var mousePosition))
                         {
-                            element.InputCallback.Invoke(
-                                element,
-                                new WndWindowMessage(WndWindowMessageType.MouseUp, element, mousePosition),
-                                context);
+                            InvokeCallback(element, context, WndWindowMessageType.MouseUp, mousePosition);
                             return InputMessageResult.Handled;
                         }
                         break;
@@ -111,10 +126,7 @@ namespace OpenSage.Gui.Wnd
                     {
                         if (GetControlAtPoint(message.Value.MousePosition, out var element, out var mousePosition))
                         {
-                            element.InputCallback.Invoke(
-                                element,
-                                new WndWindowMessage(WndWindowMessageType.MouseRightDown, element, mousePosition),
-                                context);
+                            InvokeCallback(element, context, WndWindowMessageType.MouseRightDown, mousePosition);
                             return InputMessageResult.Handled;
                         }
                         break;
@@ -124,10 +136,7 @@ namespace OpenSage.Gui.Wnd
                     {
                         if (GetControlAtPoint(message.Value.MousePosition, out var element, out var mousePosition))
                         {
-                            element.InputCallback.Invoke(
-                                element,
-                                new WndWindowMessage(WndWindowMessageType.MouseRightUp, element, mousePosition),
-                                context);
+                            InvokeCallback(element, context, WndWindowMessageType.MouseRightUp, mousePosition);
                             return InputMessageResult.Handled;
                         }
                         break;
@@ -145,13 +154,15 @@ namespace OpenSage.Gui.Wnd
                 case InputMessageType.KeyDown:
                     {
                         var control = _windowManager.FocussedControl;
-                        if(control != null)
+                        if (control != null)
                         {
-                            control?.InputCallback.Invoke(
+                            var wndMessage =  new WndWindowMessage(
+                                WndWindowMessageType.KeyDown,
                                 control,
-                                new WndWindowMessage(WndWindowMessageType.KeyDown, control, null, message.Value.Key, message.Value.Modifiers),
-                                context
-                            );
+                                null,
+                                message.Value.Key,
+                                message.Value.Modifiers);
+                            InvokeCallback(control, context, wndMessage);
                             return InputMessageResult.Handled;
                         }
 
