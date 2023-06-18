@@ -11,6 +11,7 @@ using OpenSage.Logic.Object;
 using OpenSage.Logic.Orders;
 using OpenSage.Logic.Object.Production;
 using OpenSage.Mathematics;
+using OpenSage.Gui.Wnd;
 
 namespace OpenSage.Mods.Generals.Gui
 {
@@ -109,13 +110,12 @@ namespace OpenSage.Mods.Generals.Gui
             lblCost.Text = cost;
             var lblDesc = _descriptionWindow.Controls.FindControl("ControlBarPopupDescription.wnd:StaticTextDescription") as Label;
             lblDesc.Text = description;
-            SizeF descSize = DrawingContext2D.MeasureText(
-                    description,
-                    lblDesc.Font,
-                    lblDesc.TextAlignment,
-                    lblDesc.Width);
-            lblDesc.Height = (int)MathF.Ceiling(descSize.Height);
+            lblDesc.Height = lblDesc.ImplicitHeight();
             int height = lblName.Height + lblCost.Height + lblDesc.Height;
+            if (height < 2 * GeneralsControlBarCallbacks.MarginSize)
+            {
+                height = 2 * GeneralsControlBarCallbacks.MarginSize;
+            }
             Control root = _descriptionWindow.Root;
             root.Top -= height - root.Height;
             root.Height = height;
@@ -529,6 +529,75 @@ namespace OpenSage.Mods.Generals.Gui
                 var text = string.Format(_baseText, percent.ToString("0.00"));
                 _progressText.Text = text;
             }
+        }
+    }
+
+    [WndCallbacksFactory]
+    public class GeneralsControlBarCallbacks
+    {
+        private LazyAssetReference<MappedImage> _top;
+        private LazyAssetReference<MappedImage> _bottom;
+        private LazyAssetReference<MappedImage> _middle;
+        private static GeneralsControlBarCallbacks _instance;
+
+        internal const int MarginSize = 45;
+
+        private void DrawTop(in RectangleF controlRect, DrawingContext2D drawingContext, float height)
+        {
+            RectangleF rect = new RectangleF(
+                controlRect.X,
+                controlRect.Y,
+                controlRect.Width,
+                height);
+            drawingContext.DrawMappedImage(_top.Value, rect);
+        }
+
+        private void DrawBottom(in RectangleF controlRect, DrawingContext2D drawingContext, float height)
+        {
+            RectangleF rect = new RectangleF(
+                controlRect.X,
+                controlRect.Y + controlRect.Height - height - 1,
+                controlRect.Width,
+                height + 1);
+            drawingContext.DrawMappedImage(_bottom.Value, rect);
+        }
+
+        private void DrawMiddle(in RectangleF controlRect, DrawingContext2D drawingContext, float height)
+        {
+            RectangleF rect = new RectangleF(
+                controlRect.X,
+                controlRect.Y + height - 1,
+                controlRect.Width,
+                controlRect.Height - 2 * height + 1);
+            drawingContext.DrawMappedImage(_middle.Value, rect);
+        }
+
+        public GeneralsControlBarCallbacks(Game game)
+        {
+            _top = game.AssetStore.MappedImages.GetLazyAssetReferenceByName("Helpbox-top");
+            _bottom = game.AssetStore.MappedImages.GetLazyAssetReferenceByName("Helpbox-bottom");
+            _middle = game.AssetStore.MappedImages.GetLazyAssetReferenceByName("Helpbox-middle");
+        }
+
+        public void Draw(Control control, DrawingContext2D drawingContext)
+        {
+            RectangleF controlRect = control.ClientRectangle.ToRectangleF();
+            
+            DrawTop(controlRect, drawingContext, MarginSize);
+            if (controlRect.Height > 2 * MarginSize)
+            {
+                DrawMiddle(controlRect, drawingContext, MarginSize);
+            }
+            DrawBottom(controlRect, drawingContext, MarginSize);
+        }
+
+        public static ControlDrawCallback W3DCommandBarHelpPopupDraw(Game game)
+        {
+            if (_instance == null)
+            {
+                _instance = new GeneralsControlBarCallbacks(game);
+            }
+            return (control, drawingContext) => _instance.Draw(control, drawingContext);
         }
     }
 

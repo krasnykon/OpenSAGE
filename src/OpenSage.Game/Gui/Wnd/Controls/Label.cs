@@ -1,4 +1,6 @@
-﻿using OpenSage.Data.Wnd;
+﻿using OpenSage.Mathematics;
+using OpenSage.Data.Wnd;
+using System;
 
 namespace OpenSage.Gui.Wnd.Controls
 {
@@ -11,6 +13,12 @@ namespace OpenSage.Gui.Wnd.Controls
             TextAlignment = wndWindow.StaticTextData.Centered
                 ? TextAlignment.Center
                 : TextAlignment.Leading;
+        }
+
+        public int ImplicitHeight()
+        {
+            SizeF descSize = DrawingContext2D.MeasureText(Text, Font, TextAlignment, Width);
+            return (int)MathF.Ceiling(descSize.Height);
         }
 
         protected override void DrawOverride(DrawingContext2D drawingContext)

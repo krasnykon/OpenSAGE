@@ -251,7 +251,7 @@ namespace OpenSage.Mods.Generals.Gui
                         {
                             context.WindowManager.ShowMessageBox(
                                 "GUI:ErrorStartingGame".Translate(),
-                                "LAN:TooManyPlayers".TranslateFormatted(CurrentMap.NumPlayers)); // TODO: this doesn't replace %d correctly yet
+                                "LAN:TooManyPlayers".TranslateFormatted(CurrentMap.NumPlayers));
 
                             return true;
                         }

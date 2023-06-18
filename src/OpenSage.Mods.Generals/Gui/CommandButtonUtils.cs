@@ -40,22 +40,38 @@ namespace OpenSage.Mods.Generals.Gui
                 if (message.MessageType == WndWindowMessageType.MouseEnter)
                 {
                     var name = commandButton.TextLabel.Translate();
-                    var description = commandButton.DescriptLabel.Translate();
-                    var cost = "";
+                    string description = "";
+                    float cost;
+                    string costStr = "";
 
                     // TODO: set the string correctly
                     switch (commandButton.Command)
                     {
                         case CommandType.DozerConstruct:
                         case CommandType.UnitBuild:
-                            cost = commandButton.Object.Value.BuildCost.ToString();
+                            cost = commandButton.Object.Value.BuildCost;
+                            costStr = "TOOLTIP:Cost".TranslateFormatted(cost);
+                            description = commandButton.DescriptLabel.Translate();
+                            break;
+                        case CommandType.SetRallyPoint:
+                        case CommandType.Sell:
+                        case CommandType.FireWeapon:
+                        case CommandType.SpecialPower:
+                            description = commandButton.DescriptLabel.Translate();
+                            break;
+                        case CommandType.PlayerUpgrade:
+                        case CommandType.ObjectUpgrade:
+                            cost = commandButton.Upgrade.Value.BuildCost;
+                            costStr = "TOOLTIP:Cost".TranslateFormatted(cost);
+                            description = commandButton.DescriptLabel.Translate();
                             break;
                         case CommandType.PurchaseScience:
-                            cost = commandButton.Science[0].Value.SciencePurchasePointCost.ToString();
+                            cost = commandButton.Science[0].Value.SciencePurchasePointCost;
+                            costStr = "TOOLTIP:ScienceCost".TranslateFormatted(cost);
                             description = commandButton.Science[0].Value.Description.Translate();
                             break;
                     }
-                    controlBar.ShowDescription(name, cost, description);
+                    controlBar.ShowDescription(name, costStr, description);
                 }
                 else if (message.MessageType == WndWindowMessageType.MouseExit)
                 {

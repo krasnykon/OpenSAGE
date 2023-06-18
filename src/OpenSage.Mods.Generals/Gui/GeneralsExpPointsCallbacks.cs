@@ -73,7 +73,7 @@ namespace OpenSage.Mods.Generals.Gui
             lblTitle.Text = ("SCIENCE:Rank" + currentRank).Translate();
 
             var lblLevel = _window.Controls.FindControl("GeneralsExpPoints.wnd:StaticTextLevel") as Label;
-            lblLevel.Text = ("SCIENCE:Rank").TranslateFormatted(currentRank); // TODO: this doesn't replace %d correctly yet
+            lblLevel.Text = ("SCIENCE:Rank").TranslateFormatted(currentRank);
 
             ApplyCommandSets(player, controlBar);
         }
