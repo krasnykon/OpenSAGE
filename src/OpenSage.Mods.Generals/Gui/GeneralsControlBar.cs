@@ -109,6 +109,16 @@ namespace OpenSage.Mods.Generals.Gui
             lblCost.Text = cost;
             var lblDesc = _descriptionWindow.Controls.FindControl("ControlBarPopupDescription.wnd:StaticTextDescription") as Label;
             lblDesc.Text = description;
+            SizeF descSize = DrawingContext2D.MeasureText(
+                    description,
+                    lblDesc.Font,
+                    lblDesc.TextAlignment,
+                    lblDesc.Width);
+            lblDesc.Height = (int)MathF.Ceiling(descSize.Height);
+            int height = lblName.Height + lblCost.Height + lblDesc.Height;
+            Control root = _descriptionWindow.Root;
+            root.Top -= height - root.Height;
+            root.Height = height;
             _descriptionWindow.Show();
         }
 
