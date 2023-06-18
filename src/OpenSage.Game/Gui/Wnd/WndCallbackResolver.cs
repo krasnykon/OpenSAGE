@@ -8,11 +8,17 @@ namespace OpenSage.Gui.Wnd
 {
     public class WndCallbackResolver
     {
+        private readonly Game _game;
         private readonly Dictionary<string, MethodInfo> _callbackCache;
+        private readonly Dictionary<string, MethodInfo> _callbackFactoryCache;
 
-        internal WndCallbackResolver()
+        public delegate TDelegate FactoryDelegate<TDelegate>(Game game);
+
+        internal WndCallbackResolver(Game game)
         {
+            _game = game;
             _callbackCache = new Dictionary<string, MethodInfo>();
+            _callbackFactoryCache = new Dictionary<string, MethodInfo>();
 
             // TODO: Filter by mod, perhaps using parameter to [WndCallbacks]?
             // At the moment callbacks from all mods are lumped together.
@@ -28,6 +34,13 @@ namespace OpenSage.Gui.Wnd
                         foreach (var method in type.GetMethods(BindingFlags.Static | BindingFlags.Public).Where(m => !m.IsSpecialName))
                         {
                             _callbackCache.Add(method.Name, method);
+                        }
+                    }
+                    else if (type.GetCustomAttributes(typeof(WndCallbacksFactoryAttribute), false).Length > 0)
+                    {
+                        foreach (var method in type.GetMethods(BindingFlags.Static | BindingFlags.Public).Where(m => !m.IsSpecialName))
+                        {
+                            _callbackFactoryCache.Add(method.Name, method);
                         }
                     }
                 }
@@ -59,18 +72,29 @@ namespace OpenSage.Gui.Wnd
         private TDelegate GetCallback<TDelegate>(string name)
             where TDelegate : class
         {
+            MethodInfo method;
+
             if (string.Equals(name, "[None]", StringComparison.InvariantCultureIgnoreCase))
             {
                 return null;
             }
 
-            if (!_callbackCache.TryGetValue(name, out var method))
+            if (_callbackCache.TryGetValue(name, out method))
+            {
+                return (TDelegate) (object) Delegate.CreateDelegate(typeof(TDelegate), method);
+                
+            }
+            else if (_callbackFactoryCache.TryGetValue(name, out method))
+            {
+                Type type = typeof(FactoryDelegate<TDelegate>);
+                var factory = (FactoryDelegate<TDelegate>)Delegate.CreateDelegate(type, method);
+                return factory(_game);
+            }
+            else
             {
                 logger.Warn($"Failed to resolve callback '{name}'");
                 return null;
             }
-
-            return (TDelegate) (object) Delegate.CreateDelegate(typeof(TDelegate), method);
         }
     }
 }

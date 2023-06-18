@@ -15,7 +15,7 @@ namespace OpenSage.Gui.Wnd
         public WndWindowLoader(Game game)
         {
             _game = game;
-            _wndCallbackResolver = new WndCallbackResolver();
+            _wndCallbackResolver = new WndCallbackResolver(game);
         }
 
         Window IWndWindowLoader.LoadWindow(string wndFileName)
