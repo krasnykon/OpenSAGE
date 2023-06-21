@@ -54,9 +54,7 @@ namespace OpenSage.Diagnostics
                     return InputMessageResult.NotHandled;
                 });
 
-            game.InputMessageBuffer.Handlers.Add(inputMessageHandler);
-
-            AddDisposeAction(() => game.InputMessageBuffer.Handlers.Remove(inputMessageHandler));
+            AddTo(game.InputMessageBuffer.Handlers, inputMessageHandler);
 
             _commandList = AddDisposable(game.GraphicsDevice.ResourceFactory.CreateCommandList());
 

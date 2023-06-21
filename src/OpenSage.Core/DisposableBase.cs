@@ -92,6 +92,12 @@ namespace OpenSage
         {
             _disposables.Add(new ActionDisposable(callback));
         }
+        
+        protected void AddTo<T>(List<T> list, T item)
+        {
+            list.Add(item);
+            AddDisposeAction(() => list.Remove(item));
+        }
 
         private sealed class ActionDisposable : IDisposable
         {

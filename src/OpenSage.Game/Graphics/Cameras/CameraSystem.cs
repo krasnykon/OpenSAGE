@@ -36,20 +36,14 @@ namespace OpenSage.Graphics.Cameras
             }
         }
 
-        private void RegisterInputHandler(InputMessageHandler handler, InputMessageBuffer inputMessageBuffer)
-        {
-            inputMessageBuffer.Handlers.Add(handler);
-            AddDisposeAction(() => inputMessageBuffer.Handlers.Remove(handler));
-        }
-
         private CameraSystem(Game game, Func<Viewport> getViewport, InputMessageBuffer inputMessageBuffer)
         {
             Camera = new Camera(getViewport);
             Panel = game.Panel;
             _cameraInputMessageHandler = new CameraInputMessageHandler();
             _cameraHoverMessageHandler = new CameraHoverMessageHandler();
-            RegisterInputHandler(_cameraInputMessageHandler, inputMessageBuffer);
-            RegisterInputHandler(_cameraHoverMessageHandler, inputMessageBuffer);
+            AddTo(inputMessageBuffer.Handlers, _cameraInputMessageHandler);
+            AddTo(inputMessageBuffer.Handlers, _cameraHoverMessageHandler);
         }
 
         public CameraSystem(

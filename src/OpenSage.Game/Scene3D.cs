@@ -300,13 +300,14 @@ namespace OpenSage
                 Navigation = new Navigation.Navigation(mapFile.BlendTileData, Terrain.HeightMap);
             }
 
-            
-
             if (!isDiagnosticScene)
             {
-                RegisterInputHandler(new SelectionMessageHandler(game.Selection), inputMessageBuffer);
-                RegisterInputHandler(_orderGeneratorInputHandler = new OrderGeneratorInputHandler(game.OrderGenerator), inputMessageBuffer);
-                RegisterInputHandler(_debugMessageHandler = new DebugMessageHandler(DebugOverlay), inputMessageBuffer);
+                _orderGeneratorInputHandler = new OrderGeneratorInputHandler(game.OrderGenerator);
+                _debugMessageHandler = new DebugMessageHandler(DebugOverlay);
+
+                AddTo(inputMessageBuffer.Handlers, new SelectionMessageHandler(game.Selection));
+                AddTo(inputMessageBuffer.Handlers, _orderGeneratorInputHandler);
+                AddTo(inputMessageBuffer.Handlers, _debugMessageHandler);
             }
 
             ParticleSystemManager = AddDisposable(new ParticleSystemManager(this, game.AssetStore.LoadContext));
@@ -340,12 +341,6 @@ namespace OpenSage
             GameContext.GameObjects = GameObjects;
 
             _orderGeneratorSystem = game.OrderGenerator;
-        }
-
-        private void RegisterInputHandler(InputMessageHandler handler, InputMessageBuffer inputMessageBuffer)
-        {
-            inputMessageBuffer.Handlers.Add(handler);
-            AddDisposeAction(() => inputMessageBuffer.Handlers.Remove(handler));
         }
 
         // TODO: Move this over to a player collection?
