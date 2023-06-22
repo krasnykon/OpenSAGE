@@ -1,5 +1,6 @@
 ﻿using System;
 using OpenSage.Content;
+using OpenSage.Content.Translation;
 using OpenSage.Data.Ini;
 using OpenSage.Logic;
 using OpenSage.Logic.Object;
@@ -22,9 +23,20 @@ namespace OpenSage.Gui.ControlBar
 
         internal static CommandButton Parse(IniParser parser)
         {
-            return parser.ParseNamedBlock(
+            CommandButton button = parser.ParseNamedBlock(
                  (x, name) => x.SetNameAndInstanceId("CommandButton", name),
                  FieldParseTable);
+                
+            string name = button.TextLabel.Translate();
+            int idx = name.IndexOf("&");
+            if (idx >= 0)
+            {
+                char hotkey = Char.ToUpper(name[idx + 1]);
+                name = name.Remove(idx, 1) + string.Format(" [{0}]", hotkey);
+                button.HotKey = Veldrid.Key.A + Char.ToUpper(hotkey) - 'A';
+            }
+            button.TextLabel = name;
+            return button;
         }
 
         private static readonly IniParseTable<CommandButton> FieldParseTable = new IniParseTable<CommandButton>
@@ -90,6 +102,9 @@ namespace OpenSage.Gui.ControlBar
         public LazyAssetReference<Science>[] Science { get; private set; }
         public BitArray<CommandButtonOption> Options { get; private set; }
         public string TextLabel { get; private set; }
+
+        public Veldrid.Key? HotKey { get; private set; }
+        public bool Enabled { get; set; }
         
         [AddedIn(SageGame.CncGeneralsZeroHour)]
         public string ConflictingLabel { get; private set; }

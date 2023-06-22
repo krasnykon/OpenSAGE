@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Collections.Generic;
 using OpenSage.Content;
 using OpenSage.Core;
 using OpenSage.Gui;
@@ -12,10 +13,12 @@ using OpenSage.Logic.Orders;
 using OpenSage.Logic.Object.Production;
 using OpenSage.Mathematics;
 using OpenSage.Gui.Wnd;
+using OpenSage.Input;
+using OpenSage.Content.Translation;
 
 namespace OpenSage.Mods.Generals.Gui
 {
-    public sealed class GeneralsControlBar : IControlBar
+    public sealed class GeneralsControlBar : DisposableBase, IControlBar
     {
         private enum ControlBarSize
         {
@@ -51,6 +54,8 @@ namespace OpenSage.Mods.Generals.Gui
         private readonly Window _window;
         private readonly Window _descriptionWindow;
         private readonly Window _powerShortcutWindow;
+
+        private ControlBarInputHandler _inputHandler;
 
         private readonly Control _center;
         private readonly Control _right;
@@ -127,7 +132,13 @@ namespace OpenSage.Mods.Generals.Gui
             _descriptionWindow.Hide();
         }
 
-        public GeneralsControlBar(Window background, Window window, Window descriptionWindow, Window powerShortcutWindow, ControlBarScheme scheme, ContentManager contentManager, AssetStore assetStore)
+        public GeneralsControlBar(
+            Window background,
+            Window window,
+            Window descriptionWindow,
+            Window powerShortcutWindow,
+            ControlBarScheme scheme,
+            Game game)
         {
             _background = background;
             _window = window;
@@ -135,6 +146,8 @@ namespace OpenSage.Mods.Generals.Gui
             _descriptionWindow.Hide();
             _powerShortcutWindow = powerShortcutWindow;
             _scheme = scheme;
+
+            AddTo(game.InputMessageBuffer.Handlers, _inputHandler = new ControlBarInputHandler(game));
 
             // Disable all specialpower buttons
             var buttonRoot = _powerShortcutWindow.Controls[0];
@@ -163,8 +176,10 @@ namespace OpenSage.Mods.Generals.Gui
             _resizeUpHover = window.ImageLoader.CreateFromMappedImageReference(_scheme.ToggleButtonUpIn);
             _resizeUpPushed = window.ImageLoader.CreateFromMappedImageReference(_scheme.ToggleButtonUpPushed);
 
-            _commandButtonHover = window.ImageLoader.CreateFromMappedImageReference(assetStore.MappedImages.GetLazyAssetReferenceByName("Cameo_hilited"));
-            _commandButtonPushed = window.ImageLoader.CreateFromMappedImageReference(assetStore.MappedImages.GetLazyAssetReferenceByName("Cameo_push"));
+            _commandButtonHover = window.ImageLoader.CreateFromMappedImageReference(
+                game.AssetStore.MappedImages.GetLazyAssetReferenceByName("Cameo_hilited"));
+            _commandButtonPushed = window.ImageLoader.CreateFromMappedImageReference(
+                game.AssetStore.MappedImages.GetLazyAssetReferenceByName("Cameo_push"));
 
             UpdateResizeButtonStyle();
 
@@ -308,6 +323,7 @@ namespace OpenSage.Mods.Generals.Gui
 
             protected void ApplyCommandSet(GameObject selectedUnit, GeneralsControlBar controlBar, CommandSet commandSet)
             {
+                controlBar._inputHandler.Clear();
                 for (var i = 1; i < 100; i++) // Generals has 12 buttons and Zero Hour has 14, but there's no need to set those values as the limit in the code
                 {
                     var buttonControl = controlBar._commandWindow.Controls.FindControl($"ControlBar.wnd:ButtonCommand{i:D2}") as Button;
@@ -323,26 +339,30 @@ namespace OpenSage.Mods.Generals.Gui
                         CommandButtonUtils.SetCommandButton(buttonControl, commandButton, controlBar);
 
                         var objectDefinition = commandButton.Object?.Value;
+                        if (commandButton.HotKey != null)
+                        {
+                            controlBar._inputHandler.RegisterHotkey(commandButton.HotKey.Value, commandButton);
+                        }
 
                         switch (commandButton.Command)
                         {
                             // Disable the button when the unit is not produceable
                             case CommandType.DozerConstruct:
                             case CommandType.UnitBuild:
-                                buttonControl.Enabled = selectedUnit.CanConstructUnit(objectDefinition);
+                                commandButton.Enabled = buttonControl.Enabled = selectedUnit.CanConstructUnit(objectDefinition);
                                 buttonControl.Show();
                                 break;
                             // Disable the button when the object already has it etc.
                             case CommandType.PlayerUpgrade:
                             case CommandType.ObjectUpgrade:
-                                buttonControl.Enabled = selectedUnit.CanEnqueueUpgrade(commandButton.Upgrade.Value);
+                                commandButton.Enabled =  buttonControl.Enabled = selectedUnit.CanEnqueueUpgrade(commandButton.Upgrade.Value);
                                 buttonControl.Show();
                                 break;
                             case CommandType.SpecialPower:
-                                buttonControl.Visible = selectedUnit.Owner.SpecialPowerAvailable(commandButton.SpecialPower.Value);
+                                commandButton.Enabled = buttonControl.Visible = selectedUnit.Owner.SpecialPowerAvailable(commandButton.SpecialPower.Value);
                                 break;
                             default:
-                                buttonControl.Enabled = true;
+                                commandButton.Enabled = buttonControl.Enabled = true;
                                 buttonControl.Show();
                                 break;
                         }
@@ -681,7 +701,7 @@ namespace OpenSage.Mods.Generals.Gui
             FindControl("ExpBarForeground").BackgroundImage = controlBarWindow.ImageLoader.CreateFromMappedImageReference(scheme.ExpBarForegroundImage);
 
             var powersShortcutBar = game.LoadWindow(game.Scene3D.LocalPlayer.Template.SpecialPowerShortcutWinName);
-            return new GeneralsControlBar(backgroundWindow, controlBarWindow, controlBarDescriptionWindow, powersShortcutBar, scheme, game.ContentManager, game.AssetStore);
+            return new GeneralsControlBar(backgroundWindow, controlBarWindow, controlBarDescriptionWindow, powersShortcutBar, scheme, game);
         }
     }
 }

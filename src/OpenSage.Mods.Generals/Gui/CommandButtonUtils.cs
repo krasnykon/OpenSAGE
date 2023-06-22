@@ -39,7 +39,6 @@ namespace OpenSage.Mods.Generals.Gui
                 var windowManager = buttonControl.Window.Game.Scene2D.WndWindowManager;
                 if (message.MessageType == WndWindowMessageType.MouseEnter)
                 {
-                    var name = commandButton.TextLabel.Translate();
                     string description = "";
                     float cost;
                     string costStr = "";
@@ -71,7 +70,7 @@ namespace OpenSage.Mods.Generals.Gui
                             description = commandButton.Science[0].Value.Description.Translate();
                             break;
                     }
-                    controlBar.ShowDescription(name, costStr, description);
+                    controlBar.ShowDescription(commandButton.TextLabel, costStr, description);
                 }
                 else if (message.MessageType == WndWindowMessageType.MouseExit)
                 {

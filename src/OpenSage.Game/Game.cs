@@ -910,6 +910,11 @@ namespace OpenSage
             RenderCompleted?.Invoke(this, EventArgs.Empty);
         }
 
+        public void PlayClick()
+        {
+            Audio.PlayAudioEvent(AssetStore.MiscAudio.Current.GuiClickSound.Value);
+        }
+
         protected override void Dispose(bool disposeManagedResources)
         {
             base.Dispose(disposeManagedResources);
