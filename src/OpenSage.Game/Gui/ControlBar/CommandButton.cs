@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using OpenSage.Content;
 using OpenSage.Content.Translation;
 using OpenSage.Data.Ini;
@@ -36,6 +37,8 @@ namespace OpenSage.Gui.ControlBar
                 button.HotKey = Veldrid.Key.A + Char.ToUpper(hotkey) - 'A';
             }
             button.TextLabel = name;
+            button.ObjectPrerequisites = new List<ObjectPrerequisiteList>();
+            button.SciencePrerequisites = new List<SciencePrerequisiteList>();
             return button;
         }
 
@@ -104,7 +107,10 @@ namespace OpenSage.Gui.ControlBar
         public string TextLabel { get; private set; }
 
         public Veldrid.Key? HotKey { get; private set; }
-        public bool Enabled { get; set; }
+        public bool Enabled;
+        public List<ObjectPrerequisiteList> ObjectPrerequisites;
+        public List<SciencePrerequisiteList> SciencePrerequisites;
+        
         
         [AddedIn(SageGame.CncGeneralsZeroHour)]
         public string ConflictingLabel { get; private set; }

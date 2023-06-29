@@ -305,6 +305,34 @@ namespace OpenSage.Logic
             return _sciences.Contains(science);
         }
 
+        // TODO: Make this more efficient.
+        private bool HasPrerequisite(ObjectDefinition prerequisite)
+        {
+            foreach (var gameObject in _game.GameLogic.Objects)
+            {
+                if (gameObject.Owner == this && gameObject.Definition == prerequisite)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // The list within each prerequisite is OR'd.
+        public bool HasPrerequisites(ObjectPrerequisiteList prerequisiteList) {
+            bool hasPrerequisite = false;
+            foreach (var prerequisite in prerequisiteList)
+            {
+                if (HasPrerequisite(prerequisite.Value))
+                {
+                    hasPrerequisite = true;
+                    break;
+                }
+            }
+            return hasPrerequisite;
+        }
+
         public bool CanProduceObject(ObjectDefinition objectToProduce)
         {
             if (objectToProduce.Prerequisites == null)
@@ -312,41 +340,15 @@ namespace OpenSage.Logic
                 return true;
             }
 
-            // TODO: Make this more efficient.
-            bool HasPrerequisite(ObjectDefinition prerequisite)
-            {
-                foreach (var gameObject in _game.GameLogic.Objects)
-                {
-                    if (gameObject.Owner == this && gameObject.Definition == prerequisite)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-
             // Prerequisites are AND'd.
             foreach (var prerequisiteList in objectToProduce.Prerequisites.Objects)
             {
-                // The list within each prerequisite is OR'd.
-
-                var hasPrerequisite = false;
-                foreach (var prerequisite in prerequisiteList)
-                {
-                    if (HasPrerequisite(prerequisite.Value))
-                    {
-                        hasPrerequisite = true;
-                        break;
-                    }
-                }
-
-                if (!hasPrerequisite)
+                if (!HasPrerequisites(prerequisiteList))
                 {
                     return false;
                 }
             }
-
+            
             return true;
         }
 

@@ -96,7 +96,7 @@ namespace OpenSage.Content.Translation
 
         private static string FormatConvert(string format)
         {
-            Regex pattern = new Regex(@"(%[xXeEfFdDgG])");
+            Regex pattern = new Regex(@"(%[sxXeEfFdDgG])");
             uint cnt = 0;
             MatchEvaluator evaluator = (match) =>
             {

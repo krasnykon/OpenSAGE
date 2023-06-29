@@ -1,9 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using OpenSage.Content;
 using OpenSage.Content.Translation;
 using OpenSage.Gui;
 using OpenSage.Gui.ControlBar;
 using OpenSage.Gui.Wnd;
 using OpenSage.Gui.Wnd.Controls;
+using OpenSage.Logic;
+using OpenSage.Logic.Object;
 using OpenSage.Mathematics;
 
 namespace OpenSage.Mods.Generals.Gui
@@ -11,6 +16,25 @@ namespace OpenSage.Mods.Generals.Gui
     class CommandButtonUtils
     {
         private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
+        private static string GetObjectPrerequisites(
+            List<ObjectPrerequisiteList> ObjectPrerequisites, List<SciencePrerequisiteList> SciencePrerequisites)
+        {
+            string result = "";
+            string or = " " + "CONTROLBAR:OrRequirement".Translate() + " ";
+            foreach (var objPrerequisites in ObjectPrerequisites)
+            {
+                var strList = objPrerequisites.Select(def => def.Value.DisplayName.Translate());
+                string tmp = string.Join(or, strList);
+                tmp = "CONTROLBAR:Requirements".TranslateFormatted((object)tmp);
+                result += "\n " + tmp;
+            }
+            foreach (var req in SciencePrerequisites)
+            {
+                result += "\n " + string.Join(or, req);
+            }
+            return result;
+        }
 
         public static void SetCommandButton(Button buttonControl, CommandButton commandButton, GeneralsControlBar controlBar)
         {
@@ -51,6 +75,7 @@ namespace OpenSage.Mods.Generals.Gui
                             cost = commandButton.Object.Value.BuildCost;
                             costStr = "TOOLTIP:Cost".TranslateFormatted(cost);
                             description = commandButton.DescriptLabel.Translate();
+                            description += GetObjectPrerequisites(commandButton.ObjectPrerequisites, commandButton.SciencePrerequisites);
                             break;
                         case CommandType.SetRallyPoint:
                         case CommandType.Sell:

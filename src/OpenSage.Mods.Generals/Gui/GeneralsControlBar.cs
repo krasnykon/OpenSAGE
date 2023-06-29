@@ -344,6 +344,18 @@ namespace OpenSage.Mods.Generals.Gui
                             controlBar._inputHandler.RegisterHotkey(commandButton.HotKey.Value, commandButton);
                         }
 
+                        commandButton.ObjectPrerequisites.Clear();
+                        if (objectDefinition != null && objectDefinition.Prerequisites != null)
+                        {
+                            foreach (var prerequisiteList in objectDefinition.Prerequisites.Objects)
+                            {
+                                if (!selectedUnit.Owner.HasPrerequisites(prerequisiteList)) {
+                                    commandButton.ObjectPrerequisites.Add(prerequisiteList);
+                                }
+                            }
+                            commandButton.SciencePrerequisites = objectDefinition.Prerequisites.Sciences;
+                        }
+
                         switch (commandButton.Command)
                         {
                             // Disable the button when the unit is not produceable
