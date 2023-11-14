@@ -43,14 +43,15 @@ namespace OpenSage.Gui.Wnd.Controls
             DisabledCheckedImage?.SetSize(CheckBoxSize);
         }
 
-        protected override void DefaultInputOverride(WndWindowMessage message, ControlCallbackContext context)
+        protected override bool DefaultInputOverride(WndWindowMessage message, ControlCallbackContext context)
         {
             switch (message.MessageType)
             {
                 case WndWindowMessageType.MouseUp:
                     Checked = !Checked;
-                    break;
+                    return true;
             }
+            return false;
         }
 
         protected override void DrawOverride(DrawingContext2D drawingContext)

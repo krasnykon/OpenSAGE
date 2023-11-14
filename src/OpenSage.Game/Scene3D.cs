@@ -369,12 +369,19 @@ namespace OpenSage
             _orderGeneratorSystem.UpdatePosition(pos);
         }
 
-        internal void CursorLogicTick(in TimeInterval gameTime)
+        internal string CursorLogicTick(in TimeInterval gameTime)
         {
+            string cursor = "";
             if (_orderGeneratorInputHandler != null)
             {
-                _orderGeneratorSystem.Update(gameTime, _orderGeneratorInputHandler.KeyModifiers);
+                if (!_orderGeneratorSystem.IsValid)
+                {
+                    CursorUpdatePosition();
+                    _orderGeneratorSystem.IsValid = true;
+                }
+                cursor = _orderGeneratorSystem.Update(gameTime, _orderGeneratorInputHandler.KeyModifiers);
             }
+            return cursor;
         }
         internal void LocalLogicTick(in TimeInterval gameTime, float tickT)
         {

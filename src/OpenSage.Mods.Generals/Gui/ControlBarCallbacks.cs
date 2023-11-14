@@ -46,12 +46,12 @@ namespace OpenSage.Mods.Generals.Gui
             }
         }
 
-        public static void LeftHUDInput(Control control, WndWindowMessage message, ControlCallbackContext context)
+        public static bool LeftHUDInput(Control control, WndWindowMessage message, ControlCallbackContext context)
         {
             if (message.MessageType != WndWindowMessageType.MouseDown
                 && message.MessageType != WndWindowMessageType.MouseRightDown)
             {
-                return;
+                return false;
             }
 
             var terrainPosition = context.Game.Scene3D.Radar.RadarToWorldSpace(
@@ -69,12 +69,14 @@ namespace OpenSage.Mods.Generals.Gui
                         var order = Order.CreateMoveOrder(context.Game.Scene3D.GetPlayerIndex(context.Game.Scene3D.LocalPlayer), terrainPosition);
                         context.Game.NetworkMessageBuffer.AddLocalOrder(order);
                     }
-                    break;
+                    return true;
 
                 case WndWindowMessageType.MouseRightDown: // Right mouse moves camera.
                     context.Game.Scene3D.CameraController.TerrainPosition = terrainPosition;
-                    break;
+                    return true;
             }
+            
+            return false;
         }
 
         public static void W3DLeftHUDDraw(Control control, DrawingContext2D drawingContext)

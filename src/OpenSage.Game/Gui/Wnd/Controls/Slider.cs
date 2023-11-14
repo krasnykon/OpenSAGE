@@ -53,15 +53,16 @@ namespace OpenSage.Gui.Wnd.Controls
             }
         }
 
-        protected override void DefaultInputOverride(WndWindowMessage message, ControlCallbackContext context)
+        protected override bool DefaultInputOverride(WndWindowMessage message, ControlCallbackContext context)
         {
             switch (message.MessageType)
             {
                 case WndWindowMessageType.MouseUp:
                     var value = message.MousePosition.X / (float) ClientSize.Width;
                     Value = (int) MathF.Round(MinimumValue + (MaximumValue - MinimumValue) * value);
-                    break;
+                    return true;
             }
+            return false;
         }
     }
 }

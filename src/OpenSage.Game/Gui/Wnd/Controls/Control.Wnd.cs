@@ -34,7 +34,7 @@ namespace OpenSage.Gui.Wnd.Controls
                 result.SystemCallback = systemCallback;
             }
 
-            var inputCallback = wndCallbackResolver.GetControlCallback(wndWindow.InputCallback);
+            var inputCallback = wndCallbackResolver.GetInputCallback(wndWindow.InputCallback);
             if (inputCallback != null)
             {
                 result.InputCallback = inputCallback;
@@ -54,6 +54,16 @@ namespace OpenSage.Gui.Wnd.Controls
             {
                 result.BackgroundColor = ColorRgbaF.Transparent;
                 result.BorderColor = ColorRgbaF.Transparent;
+            }
+
+            if (wndWindow.Status.HasFlag(WndWindowStatusFlags.Enabled))
+            {
+                result.Enabled = true;
+            }
+
+            if (wndWindow.Status.HasFlag(WndWindowStatusFlags.NoInput))
+            {
+                result.NoInput = true;
             }
 
             if (wndWindow.HasHeaderTemplate)

@@ -504,17 +504,18 @@ namespace OpenSage.Gui.Wnd.Controls
             return GetItemBounds(proposedSize).Size;
         }
 
-        protected override void DefaultInputOverride(WndWindowMessage message, ControlCallbackContext context)
+        protected override bool DefaultInputOverride(WndWindowMessage message, ControlCallbackContext context)
         {
             switch (message.MessageType)
             {
                 case WndWindowMessageType.MouseUp:
                     _parent.SelectedIndex = _parent.Controls.IndexOf(this);
-                    break;
+                    return true;
                 case WndWindowMessageType.MouseEnter:
                     _parent.HoveredIndex = _parent.Controls.IndexOf(this);
-                    break;
+                    return true;
             }
+            return false;
         }
 
         protected override void DrawOverride(DrawingContext2D drawingContext)

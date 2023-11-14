@@ -58,7 +58,7 @@ namespace OpenSage.Gui.Wnd.Controls
             }
         }
 
-        protected override void DefaultInputOverride(WndWindowMessage message, ControlCallbackContext context)
+        protected override bool DefaultInputOverride(WndWindowMessage message, ControlCallbackContext context)
         {
             // TODO: Capture input on mouse down.
             // TODO: Only fire click event when mouse was pressed and released inside same button.
@@ -67,8 +67,9 @@ namespace OpenSage.Gui.Wnd.Controls
             {
                 case WndWindowMessageType.MouseUp:
                     RaiseClick(context);
-                    break;
+                    return true;
             }
+            return false;
         }
 
         private void RaiseClick(ControlCallbackContext context)

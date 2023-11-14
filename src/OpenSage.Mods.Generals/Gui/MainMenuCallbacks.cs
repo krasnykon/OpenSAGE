@@ -196,7 +196,7 @@ namespace OpenSage.Mods.Generals.Gui
             }
         }
 
-        public static void MainMenuInput(Control control, WndWindowMessage message, ControlCallbackContext context)
+        public static bool MainMenuInput(Control control, WndWindowMessage message, ControlCallbackContext context)
         {
             // Any input at all (mouse, keyboard) will trigger the main menu fade-in.
             if (!_doneMainMenuFadeIn)
@@ -206,6 +206,7 @@ namespace OpenSage.Mods.Generals.Gui
                 control.Window.Controls.FindControl("MainMenu.wnd:MainMenuRuler").Show();
                 _doneMainMenuFadeIn = true;
             }
+            return true;
         }
     }
 }

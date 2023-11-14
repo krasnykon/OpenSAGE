@@ -37,7 +37,7 @@ namespace OpenSage.Gui.Wnd.Controls
             DrawText(drawingContext, TextAlignment.Leading, textArea);
         }
 
-        protected override void DefaultInputOverride(WndWindowMessage message, ControlCallbackContext context)
+        protected override bool DefaultInputOverride(WndWindowMessage message, ControlCallbackContext context)
         {
             // TODO: Capture input on mouse down.
             // TODO: Only fire click event when mouse was pressed and released inside same button.
@@ -47,13 +47,12 @@ namespace OpenSage.Gui.Wnd.Controls
                 case WndWindowMessageType.MouseUp:
                     context.WindowManager.Focus(this);
                     Click?.Invoke(this, EventArgs.Empty);
-                    break;
+                    return true;
 
                 case WndWindowMessageType.MouseEnter:
                 case WndWindowMessageType.MouseMove:
                 case WndWindowMessageType.MouseExit:
                 case WndWindowMessageType.MouseDown:
-
                     break;
 
                 case WndWindowMessageType.KeyDown:
@@ -85,14 +84,15 @@ namespace OpenSage.Gui.Wnd.Controls
                                 Text += char.ToLowerInvariant(character);
                             }
                         }
+                        return true;
                     }
                     break;
 
                 default:
                     logger.Info($"Unhandled event: {message.MessageType} {message.Element} {message.MousePosition} {message.Key}");
                     break;
-
             }
+            return false;
         }
     }
 }

@@ -55,7 +55,7 @@ namespace OpenSage
         private readonly double _scriptingUpdateInterval;
 
         private readonly FileSystem _fileSystem;
-        private readonly WndCallbackResolver _wndCallbackResolver;
+        
 
         internal readonly CursorManager Cursors;
 
@@ -459,8 +459,6 @@ namespace OpenSage
                 _renderTimer = AddDisposable(new DeltaTimer());
                 _renderTimer.Start();
 
-                _wndCallbackResolver = new WndCallbackResolver();
-
                 var standardGraphicsResources = AddDisposable(new StandardGraphicsResources(GraphicsDevice));
                 var shaderSetStore = AddDisposable(new ShaderSetStore(GraphicsDevice, RenderPipeline.GameOutputDescription));
                 var shaderResources = AddDisposable(new ShaderResourceManager(GraphicsDevice, standardGraphicsResources, shaderSetStore));
@@ -625,13 +623,7 @@ namespace OpenSage
 
         public Window LoadWindow(string wndFileName)
         {
-            var entry = ContentManager.FileSystem.GetFile(Path.Combine("Window", wndFileName));
-            if (entry == null)
-            {
-                throw new Exception($"Window file {wndFileName} was not found.");
-            }
-            var wndFile = WndFile.FromFileSystemEntry(entry, AssetStore);
-            return new Window(wndFile, this, _wndCallbackResolver);
+            return Scene2D.WndWindowManager.LoadWindow(wndFileName);
         }
 
         public AptWindow LoadAptWindow(string aptFileName)
@@ -799,7 +791,24 @@ namespace OpenSage
             }
             else
             {
-                Scene3D.CursorLogicTick(MapTime);
+                string cursor = Scene3D.CursorLogicTick(MapTime);
+                if (Scene2D.WndWindowManager.IsMouseOverControl)
+                {
+                    Cursors.IsCursorVisible = true;
+                    Cursors.SetArrowCursor(RenderTime);
+                }
+                else
+                {
+                    if (cursor != null)
+                    {
+                        Cursors.IsCursorVisible = true;
+                        Cursors.SetCursor(cursor, MapTime);
+                    }
+                    else
+                    {
+                        Cursors.IsCursorVisible = false;
+                    }
+                }
             }
         }
 

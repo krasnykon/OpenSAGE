@@ -44,6 +44,11 @@ namespace OpenSage.Gui.Wnd
             return GetCallback<ControlCallback>(name);
         }
 
+        internal InputCallback GetInputCallback(string name)
+        {
+            return GetCallback<InputCallback>(name);
+        }
+
         internal ControlDrawCallback GetControlDrawCallback(string name)
         {
             return GetCallback<ControlDrawCallback>(name);

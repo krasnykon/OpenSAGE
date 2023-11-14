@@ -1,0 +1,5 @@
+{
+    "dotnet-test-explorer.testProjectPath": "src/**/*.Tests.csproj",
+    "jupyter.debugJustMyCode": true,
+    "C_Cpp.workspaceSymbols": "Just My Code"
+}

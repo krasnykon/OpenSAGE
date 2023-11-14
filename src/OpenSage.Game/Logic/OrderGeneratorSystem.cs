@@ -12,6 +12,8 @@ namespace OpenSage.Logic
     {
         private IOrderGenerator _activeGenerator;
 
+        internal bool IsValid { get; set; }
+
         public IOrderGenerator ActiveGenerator
         {
             get => _activeGenerator;
@@ -26,6 +28,7 @@ namespace OpenSage.Logic
                     disposable.Dispose();
                 }
                 _activeGenerator = value;
+                IsValid = false;
             }
         }
 
@@ -95,18 +98,9 @@ namespace OpenSage.Logic
             }
         }
 
-        public void Update(in TimeInterval time, KeyModifiers keyModifiers)
+        public string Update(in TimeInterval time, KeyModifiers keyModifiers)
         {
-            var cursor = ActiveGenerator.GetCursor(keyModifiers);
-            if (cursor != null)
-            {
-                Game.Cursors.IsCursorVisible = true;
-                Game.Cursors.SetCursor(cursor, time);
-            }
-            else
-            {
-                Game.Cursors.IsCursorVisible = false;
-            }
+            return ActiveGenerator.GetCursor(keyModifiers);
         }
 
         public void BuildRenderList(RenderList renderList, Camera camera, in TimeInterval gameTime)

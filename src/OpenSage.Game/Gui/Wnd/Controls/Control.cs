@@ -9,7 +9,7 @@ namespace OpenSage.Gui.Wnd.Controls
     public partial class Control : DisposableBase
     {
         public ControlCallback SystemCallback { get; set; }
-        public ControlCallback InputCallback { get; set; }
+        public InputCallback InputCallback { get; set; }
         public ControlCallback TooltipCallback { get; set; }
         public ControlDrawCallback DrawCallback { get; set; }
 
@@ -49,7 +49,18 @@ namespace OpenSage.Gui.Wnd.Controls
 
         public void Hide() => Visible = false;
 
-        public bool Enabled { get; set; } = true;
+        public bool NoInput { get; set; }
+
+        private bool _enabled = true;
+        public bool Enabled
+        {
+            get => _enabled;
+            set
+            {
+                _enabled = value;
+                Window?.EnabledChanged(this);
+            }
+        }
 
         private Rectangle _bounds;
         public Rectangle Bounds
@@ -274,7 +285,7 @@ namespace OpenSage.Gui.Wnd.Controls
             return this;
         }
 
-        public Control[] GetSelfOrDescendantsAtPoint(in Point2D windowPoint)
+        public List<Control> GetSelfOrDescendantsAtPoint(in Point2D windowPoint)
         {
             var localWindowPoint = windowPoint;
 
@@ -287,17 +298,18 @@ namespace OpenSage.Gui.Wnd.Controls
                     return;
                 }
 
+                result.Add(control);
+                
                 foreach (var child in control.Controls.AsList())
                 {
                     findRecursive(child);
                 }
-
-                result.Add(control);
             }
 
-            findRecursive(this.Window ?? this);
+            findRecursive(this);
+            result.Reverse();
 
-            return result.ToArray();
+            return result;
         }
 
         public virtual Size GetPreferredSize(Size proposedSize) => Size.Zero;
@@ -469,9 +481,12 @@ namespace OpenSage.Gui.Wnd.Controls
                 rect);
         }
 
-        public void DefaultInput(Control control, WndWindowMessage message, ControlCallbackContext context)
+        public bool DefaultInput(Control control, WndWindowMessage message, ControlCallbackContext context)
         {
-            if (!Enabled) return;
+            if (!Enabled)
+            {
+                return false;
+            }
 
             switch (message.MessageType)
             {
@@ -494,10 +509,13 @@ namespace OpenSage.Gui.Wnd.Controls
                     break;
             }
 
-            DefaultInputOverride(message, context);
+            return DefaultInputOverride(message, context);
         }
 
-        protected virtual void DefaultInputOverride(WndWindowMessage message, ControlCallbackContext context) { }
+        protected virtual bool DefaultInputOverride(WndWindowMessage message, ControlCallbackContext context)
+        {
+            return false;
+        }
 
         protected override void Dispose(bool disposeManagedResources)
         {
@@ -544,6 +562,8 @@ namespace OpenSage.Gui.Wnd.Controls
     }
 
     public delegate void ControlDrawCallback(Control control, DrawingContext2D drawingContext);
+
+    public delegate bool InputCallback(Control control, WndWindowMessage message, ControlCallbackContext context);
 
     public delegate void ControlCallback(Control control, WndWindowMessage message, ControlCallbackContext context);
 

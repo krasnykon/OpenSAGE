@@ -115,9 +115,10 @@ namespace OpenSage.Mods.Generals.Gui
             }
         }
 
-        public static void LanLobbyMenuInput(Control control, WndWindowMessage message, ControlCallbackContext context)
+        public static bool LanLobbyMenuInput(Control control, WndWindowMessage message, ControlCallbackContext context)
         {
             logger.Trace($"Have message {message.MessageType} for control {control.Name}");
+            return false;
         }
 
         private static void TextEditPlayerName_OnTextChanged(object sender, string text)

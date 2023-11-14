@@ -117,7 +117,7 @@ namespace OpenSage.Mods.Generals.Gui
             // TODO: Go back to main menu after credits finish.
         }
 
-        public static void CreditsMenuInput(Control control, WndWindowMessage message, ControlCallbackContext context)
+        public static bool CreditsMenuInput(Control control, WndWindowMessage message, ControlCallbackContext context)
         {
             switch (message.MessageType)
             {
@@ -126,9 +126,11 @@ namespace OpenSage.Mods.Generals.Gui
                     {
                         //Should load a loading screen
                         context.WindowManager.SetWindow(@"Menus\MainMenu.wnd");
+                        return true;
                     }
                     break;
             }
+            return false;
         }
 
         public static void W3DCreditsMenuDraw(Control control, DrawingContext2D drawingContext)

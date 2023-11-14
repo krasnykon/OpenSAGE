@@ -20,32 +20,42 @@ namespace OpenSage.Gui.Wnd.Controls
 
         public Control Root { get; }
         public Game Game { get; set; }
+        public WndWindowManager WindowManager { get; }
         public ImageLoader ImageLoader { get; }
 
         public Window(WndFile wndFile, Game game, WndCallbackResolver wndCallbackResolver)
             : this(wndFile.RootWindow.ScreenRect.CreationResolution, game.GraphicsLoadContext)
         {
             Game = game;
+            WindowManager = game.Scene2D.WndWindowManager;
             Bounds = wndFile.RootWindow.ScreenRect.ToRectangle();
             LayoutInit = wndCallbackResolver.GetWindowCallback(wndFile.LayoutBlock.LayoutInit);
             LayoutUpdate = wndCallbackResolver.GetWindowCallback(wndFile.LayoutBlock.LayoutUpdate);
             LayoutShutdown = wndCallbackResolver.GetWindowCallback(wndFile.LayoutBlock.LayoutShutdown);
+            Enabled = true;
 
-            Root = CreateRecursive(
+            Root = AddControl(CreateRecursive(
                 wndFile.RootWindow,
                 ImageLoader,
                 game.ContentManager,
                 game.AssetStore,
                 wndCallbackResolver,
-                wndFile.RootWindow.ScreenRect.UpperLeft);
-            Controls.Add(Root);
+                wndFile.RootWindow.ScreenRect.UpperLeft));
         }
 
         public Window(in Size creationResolution, Control root, Game game)
             : this(creationResolution, game.GraphicsLoadContext)
         {
-            Root = root;
-            Controls.Add(root);
+            Game = game;
+            WindowManager = game.Scene2D.WndWindowManager;
+            Root = AddControl(root);
+        }
+
+        internal Window(in Size creationResolution, Control root, WndWindowManager windowManager)
+        {
+            _creationResolution = creationResolution;
+            WindowManager = windowManager;
+            Root = AddControl(root);
         }
 
         private Window(in Size creationResolution, GraphicsLoadContext loadContext)
@@ -56,6 +66,12 @@ namespace OpenSage.Gui.Wnd.Controls
 
             var imageTextureCache = AddDisposable(new ImageTextureCache(loadContext));
             ImageLoader = new ImageLoader(imageTextureCache);
+        }
+
+        private Control AddControl(Control control)
+        {
+            Controls.Add(control);
+            return control;
         }
 
         protected override void OnSizeChanged(in Size newSize)
@@ -76,6 +92,11 @@ namespace OpenSage.Gui.Wnd.Controls
         internal void Update()
         {
             Layout();
+        }
+
+        internal void EnabledChanged(Control control)
+        {
+            WindowManager.EnabledChanged(control);
         }
 
         internal void Render(DrawingContext2D drawingContext)

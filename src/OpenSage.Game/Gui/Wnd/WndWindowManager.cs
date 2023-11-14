@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using OpenSage.Data.Wnd;
 using OpenSage.Gui.Wnd.Controls;
 using OpenSage.Gui.Wnd.Transitions;
 using OpenSage.Mathematics;
@@ -9,7 +11,9 @@ namespace OpenSage.Gui.Wnd
 {
     public sealed class WndWindowManager
     {
-        private readonly Game _game;
+        private readonly IPanel _panel;
+        private readonly IWndWindowLoader _loader;
+        private readonly WndInputMessageHandler _messageHandler;
 
         public int OpenWindowCount => WindowStack.Count;
 
@@ -17,36 +21,48 @@ namespace OpenSage.Gui.Wnd
 
         public WindowTransitionManager TransitionManager { get; }
         public Control FocussedControl { get; private set; }
+        public bool IsMouseOverControl { get => _messageHandler.IsMouseOverControl; }
 
         public Window TopWindow => WindowStack.Count > 0 ? WindowStack.Peek() : null;
 
-        public WndWindowManager(Game game)
+        private WndWindowManager()
         {
-            _game = game;
             WindowStack = new Stack<Window>();
-
-            game.InputMessageBuffer.Handlers.Add(new WndInputMessageHandler(this, _game));
-
-            TransitionManager = new WindowTransitionManager(game.AssetStore.WindowTransitions);
             FocussedControl = null;
+        }
+
+        public WndWindowManager(Game game): this()
+        {
+            _panel = game.Panel;
+            _messageHandler = new WndInputMessageHandler(this, game);
+            game.InputMessageBuffer.Handlers.Add(_messageHandler);
+            TransitionManager = new WindowTransitionManager(game.AssetStore.WindowTransitions);
+            _loader = new WndWindowLoader(game);
+        }
+
+        internal WndWindowManager(IPanel panel, IWndWindowLoader loader): this()
+        {
+            _panel = panel;
+            _loader = loader;
+        }
+
+        public Window LoadWindow(string wndFileName)
+        {
+            return _loader.LoadWindow(wndFileName);
         }
 
         public Window PushWindow(Window window)
         {
-            window.Size = _game.Panel.ClientBounds.Size;
-
+            window.Size = _panel.ClientBounds.Size;
             WindowStack.Push(window);
-
-            window.LayoutInit?.Invoke(window, _game);
-
+            _loader.LayoutInit(window);
             FocussedControl = null;
-
             return window;
         }
 
         public Window PushWindow(string wndFileName, object tag = null)
         {
-            var window = _game.LoadWindow(wndFileName);
+            var window = _loader.LoadWindow(wndFileName);
             window.Tag = tag;
             return PushWindow(window);
         }
@@ -61,6 +77,17 @@ namespace OpenSage.Gui.Wnd
             }
 
             return PushWindow(wndFileName, tag);
+        }
+
+        internal void EnabledChanged(Control control)
+        {
+            if (FocussedControl != null)
+            {
+                if (FocussedControl == control && !control.Enabled)
+                {
+                    FocussedControl = null;
+                }
+            }
         }
 
         internal void OnViewportSizeChanged(in Size newSize)
@@ -141,23 +168,25 @@ namespace OpenSage.Gui.Wnd
             FocussedControl = control;
         }
 
-        public Control[] GetControlsAtPoint(in Point2D mousePosition)
+        public List<Control> GetControlsAtPoint(in Point2D mousePosition)
         {
             if (WindowStack.Count == 0)
             {
-                return Array.Empty<Control>();
+                return new List<Control>();
             }
-
-            var window = WindowStack.Peek();
-
-            return window.GetSelfOrDescendantsAtPoint(mousePosition);
+            else
+            {
+                var window = WindowStack.Peek();
+                var result = window.GetSelfOrDescendantsAtPoint(mousePosition);
+                return result;
+            }
         }
 
         internal void Update(in TimeInterval gameTime)
         {
             foreach (var window in WindowStack)
             {
-                window.LayoutUpdate?.Invoke(window, _game);
+                _loader.LayoutUpdate(window);
             }
 
             TransitionManager.Update(gameTime);

@@ -55,11 +55,6 @@ namespace OpenSage.Tests.Graphics.Cameras
             }
         }
 
-        class MockPanel : IPanel
-        {
-            public Rectangle Frame => new Rectangle(0, 0, WindowSize, WindowSize);
-        }
-
         MockCamera Camera { get; }
         MockHeightMap HeightMap { get; }
         MockPanel  Panel { get; }
@@ -83,7 +78,7 @@ namespace OpenSage.Tests.Graphics.Cameras
         {
             Camera = new MockCamera();
             HeightMap = new MockHeightMap();
-            Panel = new MockPanel();
+            Panel = new MockPanel(WindowSize, WindowSize);
             Controller = new RtsCameraController(
                 DefaultHeight,
                 DefaultPitch,
